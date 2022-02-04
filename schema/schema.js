@@ -34,7 +34,7 @@ const BookType = new GraphQLObjectType({
 
 const AuthorType = new GraphQLObjectType({
     name: 'Author',
-    fields: ( ) => ({
+    fields: () => ({
         id: { type: GraphQLID },
         name: { type: GraphQLString },
         age: { type: GraphQLInt },
@@ -88,12 +88,12 @@ const Mutation = new GraphQLObjectType({
                 name: { type: GraphQLString },
                 age: { type: GraphQLInt }
             },
-            resolve(parent, args){
-                let author = new Author({
+            resolve:async(parent, args)=>{
+                let author = await prisma.author.create({data:{
                     name: args.name,
                     age: args.age
-                });
-                return author.save();
+                }});
+                return author;
             }
         },
         addBook: {
@@ -103,15 +103,54 @@ const Mutation = new GraphQLObjectType({
                 genre: { type: new GraphQLNonNull(GraphQLString) },
                 authorId: { type: new GraphQLNonNull(GraphQLID) }
             },
-            resolve(parent, args){
-                let book = new Book({
+            resolve:async(parent, args)=>{
+                let book=  await prisma.book.create({data:{
                     name: args.name,
                     genre: args.genre,
                     authorId: args.authorId
-                });
-                return book.save();
+                }});
+                return book;
             }
-        }
+        },
+        deleteAuthor: {
+            type: AuthorType,
+            args: {
+              id: { type: GraphQLID }
+            },
+            resolve:async(parent, args) =>{
+              return await prisma.author.delete({where:{id:args.id}});
+            }
+        },
+        deleteBook: {
+            type: BookType,
+            args: {
+              id: { type: GraphQLID }
+            },
+            resolve:async(parent, args)=> {
+              return await prisma.book.delete({where:{id:args.id}});
+            }
+        },
+        updateAuthor: {
+            type: AuthorType,
+            args: {
+              id: { type: GraphQLID },
+              name:{type:GraphQLString}
+            },
+            resolve:async(parent, args) =>{
+              return await prisma.author.update({where:{id:args.id},data:{name:args.name}});
+            }
+        },
+        updateBook: {
+            type: BookType,
+            args: {
+              id: { type: GraphQLID },
+              name:{type:GraphQLString}
+            },
+            resolve:async(parent, args)=> {
+              return await prisma.book.update({where:{id:args.id},data:{name:args.name}});
+            
+            }
+        },
     }
 });
 
